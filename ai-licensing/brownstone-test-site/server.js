@@ -1,5 +1,5 @@
 const express = require("express");
-const brownstone = require("../brownstone-middleware/src/aiMiddlware");
+const brownstone = require("../brownstone-middleware/src/brownstone");
 
 const app = express();
 

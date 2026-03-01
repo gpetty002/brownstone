@@ -1,3 +1,3 @@
 // index.js
 
-module.exports = require("./src/aiMiddleware");
+module.exports = require("./src/brownstone");
