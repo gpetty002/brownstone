@@ -1,4 +1,8 @@
 import { useState } from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  LineChart, Line, CartesianGrid,
+} from "recharts";
 import "./App.css";
 
 const API_URL = "http://localhost:4000";
@@ -20,13 +24,21 @@ function App() {
             Register site
           </button>
           <button
+            className={view === "analytics" ? "tab active" : "tab"}
+            onClick={() => setView("analytics")}
+          >
+            Analytics
+          </button>
+          <button
             className={view === "usage" ? "tab active" : "tab"}
             onClick={() => setView("usage")}
           >
-            View usage
+            Logs
           </button>
         </nav>
-        {view === "register" ? <RegisterView /> : <UsageView />}
+        {view === "register" && <RegisterView />}
+        {view === "analytics" && <AnalyticsView />}
+        {view === "usage" && <UsageView />}
       </div>
     </div>
   );
@@ -201,6 +213,123 @@ function RegisterView() {
   );
 }
 
+function AnalyticsView() {
+  const [siteId, setSiteId] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError(null);
+    setData(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/sites/${siteId}/analytics`, {
+        headers: { "x-api-key": apiKey },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to fetch analytics");
+      setData(json);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <p className="subtitle">View AI access analytics for a registered site.</p>
+      {error && <p className="error">{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <div className="field-row">
+          <div className="field">
+            <label htmlFor="a-siteId">Site ID</label>
+            <input
+              id="a-siteId"
+              type="text"
+              placeholder="64f3a..."
+              value={siteId}
+              onChange={(e) => setSiteId(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="a-apiKey">API Key</label>
+            <input
+              id="a-apiKey"
+              type="text"
+              placeholder="your-api-key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+        <button type="submit" disabled={loading}>
+          {loading ? "Loading..." : "Load analytics"}
+        </button>
+      </form>
+
+      {data && (
+        <div className="analytics-results">
+          <h3 className="analytics-site-name">{data.name}</h3>
+
+          <div className="stat-row">
+            <Stat label="Total requests" value={data.summary.total} />
+            <Stat label="Last 7 days" value={data.summary.last7Days} />
+            <Stat label="Last 30 days" value={data.summary.last30Days} />
+          </div>
+
+          {data.byProvider.length > 0 && (
+            <div className="chart-section">
+              <p className="chart-label">Requests by AI provider</p>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={data.byProvider} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
+                  <XAxis dataKey="provider" tick={{ fill: "#aaa", fontSize: 12 }} />
+                  <YAxis tick={{ fill: "#aaa", fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ background: "#1e1e1e", border: "1px solid #444", borderRadius: 6 }}
+                    labelStyle={{ color: "#fff" }}
+                    itemStyle={{ color: "#646cff" }}
+                  />
+                  <Bar dataKey="count" fill="#646cff" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {data.daily.length > 0 && (
+            <div className="chart-section">
+              <p className="chart-label">Requests over the last 30 days</p>
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={data.daily} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
+                  <CartesianGrid stroke="#2a2a2a" />
+                  <XAxis dataKey="date" tick={{ fill: "#aaa", fontSize: 11 }} />
+                  <YAxis tick={{ fill: "#aaa", fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ background: "#1e1e1e", border: "1px solid #444", borderRadius: 6 }}
+                    labelStyle={{ color: "#fff" }}
+                    itemStyle={{ color: "#a0f0a0" }}
+                  />
+                  <Line type="monotone" dataKey="count" stroke="#a0f0a0" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {data.byProvider.length === 0 && (
+            <p className="hint" style={{ marginTop: "1.5rem" }}>No AI access logged yet.</p>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 function UsageView() {
   const [siteId, setSiteId] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -231,33 +360,35 @@ function UsageView() {
 
   return (
     <>
-      <p className="subtitle">Look up AI access logs for a registered site.</p>
+      <p className="subtitle">Raw AI access logs for a registered site.</p>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="siteId">Site ID</label>
-          <input
-            id="siteId"
-            type="text"
-            placeholder="64f3a..."
-            value={siteId}
-            onChange={(e) => setSiteId(e.target.value)}
-            required
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="apiKey">API Key</label>
-          <input
-            id="apiKey"
-            type="text"
-            placeholder="your-api-key"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            required
-          />
+        <div className="field-row">
+          <div className="field">
+            <label htmlFor="u-siteId">Site ID</label>
+            <input
+              id="u-siteId"
+              type="text"
+              placeholder="64f3a..."
+              value={siteId}
+              onChange={(e) => setSiteId(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="u-apiKey">API Key</label>
+            <input
+              id="u-apiKey"
+              type="text"
+              placeholder="your-api-key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              required
+            />
+          </div>
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? "Loading..." : "Fetch usage"}
+          {loading ? "Loading..." : "Fetch logs"}
         </button>
       </form>
 
@@ -293,6 +424,15 @@ function UsageView() {
         </div>
       )}
     </>
+  );
+}
+
+function Stat({ label, value }) {
+  return (
+    <div className="stat-card">
+      <span className="stat-value">{value}</span>
+      <span className="stat-label">{label}</span>
+    </div>
   );
 }
 
