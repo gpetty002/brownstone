@@ -12,6 +12,7 @@ const siteSchema = new mongoose.Schema({
   },
   enforcementEnabled: Boolean,
   blockedAIs: [String],
+  webhookUrl: String,
 });
 
 module.exports = mongoose.model("Site", siteSchema);

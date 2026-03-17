@@ -7,7 +7,7 @@ const Site = require("../models/Site");
 
 // POST /sites — register a new site and receive an API key
 router.post("/", async (req, res) => {
-  const { name, license, enforcementEnabled, blockedAIs } = req.body;
+  const { name, license, enforcementEnabled, blockedAIs, webhookUrl } = req.body;
 
   if (!name) return res.status(400).json({ error: "name is required" });
 
@@ -19,6 +19,7 @@ router.post("/", async (req, res) => {
     license: license || { model: "free", rate: null },
     enforcementEnabled: enforcementEnabled ?? false,
     blockedAIs: blockedAIs || [],
+    webhookUrl: webhookUrl || null,
   });
 
   res.status(201).json({
@@ -28,6 +29,7 @@ router.post("/", async (req, res) => {
     license: site.license,
     enforcementEnabled: site.enforcementEnabled,
     blockedAIs: site.blockedAIs,
+    webhookUrl: site.webhookUrl,
   });
 });
 
