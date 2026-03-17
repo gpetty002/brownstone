@@ -6,8 +6,9 @@ const siteSchema = new mongoose.Schema({
   name: String,
   apiKey: String,
   license: {
-    model: String, // free | paid
-    rate: String,
+    model: String,      // free | paid
+    rate: String,       // e.g. "$0.001-per-1000-tokens"
+    permission: String, // allowed | restricted | blocked
   },
   enforcementEnabled: Boolean,
   blockedAIs: [String],
