@@ -8,6 +8,7 @@ const cors = require("cors");
 const logRoute = require("./routes/log");
 const checkRoute = require("./routes/check");
 const sitesRoute = require("./routes/sites");
+const usageRoute = require("./routes/usage");
 
 const app = express();
 
@@ -21,6 +22,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use("/log", logRoute);
 app.use("/check", checkRoute);
 app.use("/sites", sitesRoute);
+app.use("/sites", usageRoute);
 
 app.listen(4000, () => {
   console.log("Brownstone API running on port 4000");
