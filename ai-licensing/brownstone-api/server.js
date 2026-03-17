@@ -11,6 +11,7 @@ const sitesRoute = require("./routes/sites");
 const usageRoute = require("./routes/usage");
 const analyticsRoute = require("./routes/analytics");
 const unknownHitsRoute = require("./routes/unknownHits");
+const llmsTxtRoute = require("./routes/llmsTxt");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/sites", usageRoute);
 app.use("/sites", analyticsRoute);
 app.use("/unknown-hit", unknownHitsRoute);
 app.use("/sites", unknownHitsRoute);
+app.use("/sites", llmsTxtRoute);
 
 app.listen(4000, () => {
   console.log("Brownstone API running on port 4000");
