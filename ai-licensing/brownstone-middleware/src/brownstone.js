@@ -5,9 +5,12 @@ const injectMetadata = require("./injectMetadata");
 const logHit = require("./meterUsage");
 const checkLicense = require("./enforce");
 const logUnknown = require("./logUnknown");
+const serveLlmsTxt = require("./serveLlmsTxt");
 
 function brownstone(options = {}) {
   return async function (req, res, next) {
+    if (serveLlmsTxt(req, res, options)) return;
+
     const userAgent = req.headers["user-agent"] || "";
     const aiSource = detectAI(userAgent);
 
