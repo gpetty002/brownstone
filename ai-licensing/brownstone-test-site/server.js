@@ -5,6 +5,9 @@ const app = express();
 
 app.use(
   brownstone({
+    apiKey: "brownstone-test-key-abc123",
+    metering: "true",
+    enforcement: "true",
     license: "paid|$0.001-per-1000-tokens|allowed",
   }),
 );
