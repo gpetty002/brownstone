@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import "./App.css";
 
-const API_URL = "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const AI_OPTIONS = ["ChatGPT", "Claude", "BingAI", "Perplexity", "Gemini"];
 
