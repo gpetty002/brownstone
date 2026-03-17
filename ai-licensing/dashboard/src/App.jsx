@@ -55,7 +55,7 @@ function App() {
 
 function RegisterView() {
   const [form, setForm] = useState({
-    name: "", licenseModel: "free", rate: "",
+    name: "", domain: "", licenseModel: "free", rate: "",
     permission: "allowed", enforcementEnabled: false, blockedAIs: [],
   });
   const [site, setSite] = useState(null);
@@ -86,6 +86,7 @@ function RegisterView() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
+          domain: form.domain || null,
           license: { model: form.licenseModel, rate: form.rate || null, permission: form.permission },
           enforcementEnabled: form.enforcementEnabled,
           blockedAIs: form.blockedAIs,
@@ -112,6 +113,7 @@ function RegisterView() {
         <div className="site-details">
           <Row label="Site ID" value={site.id} />
           <Row label="Name" value={site.name} />
+          {site.domain && <Row label="Domain" value={site.domain} />}
           <Row label="License" value={`${site.license.model} / ${site.license.permission}`} />
           {site.license.rate && <Row label="Rate" value={site.license.rate} />}
           <Row label="Enforcement" value={site.enforcementEnabled ? "Enabled" : "Disabled"} />
@@ -127,9 +129,15 @@ function RegisterView() {
       <p className="subtitle">Register a site to start tracking AI access.</p>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="name">Site name</label>
-          <input id="name" name="name" type="text" placeholder="my-app" value={form.name} onChange={handleChange} required />
+        <div className="field-row">
+          <div className="field">
+            <label htmlFor="name">Site name</label>
+            <input id="name" name="name" type="text" placeholder="my-app" value={form.name} onChange={handleChange} required />
+          </div>
+          <div className="field">
+            <label htmlFor="domain">Domain (optional)</label>
+            <input id="domain" name="domain" type="text" placeholder="example.com" value={form.domain} onChange={handleChange} />
+          </div>
         </div>
         <div className="field-row">
           <div className="field">
