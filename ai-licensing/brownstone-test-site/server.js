@@ -8,7 +8,7 @@ app.use(
     apiKey: "brownstone-test-key-abc123",
     metering: "true",
     enforcement: "true",
-    license: "paid|$0.001-per-1000-tokens|allowed",
+    license: { model: "paid", rate: "$0.001-per-1000-tokens", permission: "allowed" },
   }),
 );
 
