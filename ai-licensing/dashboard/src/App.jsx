@@ -35,10 +35,17 @@ function App() {
           >
             Logs
           </button>
+          <button
+            className={view === "unknown" ? "tab active" : "tab"}
+            onClick={() => setView("unknown")}
+          >
+            Unknown bots
+          </button>
         </nav>
         {view === "register" && <RegisterView />}
         {view === "analytics" && <AnalyticsView />}
         {view === "usage" && <UsageView />}
+        {view === "unknown" && <UnknownBotsView />}
       </div>
     </div>
   );
@@ -433,6 +440,102 @@ function Stat({ label, value }) {
       <span className="stat-value">{value}</span>
       <span className="stat-label">{label}</span>
     </div>
+  );
+}
+
+function UnknownBotsView() {
+  const [siteId, setSiteId] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError(null);
+    setResult(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/sites/${siteId}/unknown-hits`, {
+        headers: { "x-api-key": apiKey },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch unknown hits");
+      setResult(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <p className="subtitle">Unrecognized bots that don't match known AI agents.</p>
+      {error && <p className="error">{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <div className="field-row">
+          <div className="field">
+            <label htmlFor="ub-siteId">Site ID</label>
+            <input
+              id="ub-siteId"
+              type="text"
+              placeholder="64f3a..."
+              value={siteId}
+              onChange={(e) => setSiteId(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="ub-apiKey">API Key</label>
+            <input
+              id="ub-apiKey"
+              type="text"
+              placeholder="your-api-key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+        <button type="submit" disabled={loading}>
+          {loading ? "Loading..." : "Fetch unknown bots"}
+        </button>
+      </form>
+
+      {result && (
+        <div className="usage-results">
+          <p className="usage-header">
+            <strong>{result.name}</strong> — {result.unknownHits.length} unique unknown bot{result.unknownHits.length !== 1 ? "s" : ""}
+          </p>
+          {result.unknownHits.length === 0 ? (
+            <p className="hint">No unknown bots logged yet.</p>
+          ) : (
+            <table className="usage-table">
+              <thead>
+                <tr>
+                  <th>User Agent</th>
+                  <th>Path</th>
+                  <th>IP</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.unknownHits.map((hit) => (
+                  <tr key={hit._id}>
+                    <td>{hit.userAgent}</td>
+                    <td>{hit.path}</td>
+                    <td>{hit.ip}</td>
+                    <td>{new Date(hit.timestamp).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 

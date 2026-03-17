@@ -4,20 +4,20 @@ const detectAI = require("./detectAI");
 const injectMetadata = require("./injectMetadata");
 const logHit = require("./meterUsage");
 const checkLicense = require("./enforce");
+const logUnknown = require("./logUnknown");
 
 function brownstone(options = {}) {
   return async function (req, res, next) {
     const userAgent = req.headers["user-agent"] || "";
     const aiSource = detectAI(userAgent);
 
-    console.log("hello");
-
-    console.log("this is the ai Source: " + aiSource);
-
     // Inject meta tag into HTML responses
     injectMetadata(res, options);
 
-    if (!aiSource) return next();
+    if (!aiSource) {
+      if (options.metering) await logUnknown(req, options);
+      return next();
+    }
 
     if (options.metering) {
       await logHit(aiSource, req, options);
