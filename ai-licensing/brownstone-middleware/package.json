@@ -1,13 +1,27 @@
 {
   "name": "brownstone-middleware",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "Express middleware for detecting, logging, and enforcing licensing around AI agent access",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "src/"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/detectAI.test.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "peerDependencies": {
+    "express": ">=4.0.0"
+  },
+  "keywords": [
+    "ai",
+    "licensing",
+    "middleware",
+    "express",
+    "bot-detection",
+    "crawlers"
+  ],
+  "author": "Gisselle Petty",
+  "license": "MIT",
   "type": "commonjs"
 }

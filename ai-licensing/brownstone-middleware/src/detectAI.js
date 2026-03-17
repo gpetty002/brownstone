@@ -11,6 +11,7 @@ const aiAgents = [
   { name: "CommonCrawl", ua: ["CCBot"] },
   { name: "Cohere", ua: ["cohere-ai"] },
   { name: "Diffbot", ua: ["Diffbot"] },
+  { name: "Bytespider", ua: ["Bytespider"] },
 ];
 
 function detectAI(userAgent = "") {
