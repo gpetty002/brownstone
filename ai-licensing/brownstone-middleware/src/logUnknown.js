@@ -5,7 +5,7 @@ async function logUnknown(req, options) {
   if (!userAgent) return;
 
   try {
-    await fetch("http://localhost:4000/unknown-hit", {
+    await fetch(`${options.apiUrl}/unknown-hit`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

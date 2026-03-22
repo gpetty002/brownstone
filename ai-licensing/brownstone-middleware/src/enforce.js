@@ -1,7 +1,7 @@
 // enforce.js
 
 async function checkLicense(aiSource, options) {
-  const response = await fetch("http://localhost:4000/check", {
+  const response = await fetch(`${options.apiUrl}/check`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
