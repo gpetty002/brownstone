@@ -1,7 +1,7 @@
 // meterUsage.js
 
 async function logHit(aiSource, req, options) {
-  await fetch("http://localhost:4000/log", {
+  await fetch(`${options.apiUrl}/log`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
