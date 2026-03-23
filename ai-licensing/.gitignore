@@ -16,3 +16,6 @@ build/
 
 # Logs
 npm-debug.log*
+
+# Docs
+DEPLOY.md
