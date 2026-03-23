@@ -8,6 +8,7 @@ const Usage = require("../models/Usage");
 // GET /sites/:id/analytics
 router.get("/:id/analytics", async (req, res) => {
   const apiKey = req.headers["x-api-key"];
+  const tz = req.query.tz || "UTC";
 
   const site = await Site.findById(req.params.id);
   if (!site) return res.status(404).json({ error: "Site not found" });
@@ -34,7 +35,7 @@ router.get("/:id/analytics", async (req, res) => {
       { $match: { siteId: site._id, timestamp: { $gte: last30 } } },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp", timezone: tz } },
           count: { $sum: 1 },
         },
       },
