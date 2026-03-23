@@ -109,6 +109,7 @@ label {
 }
 
 input[type="text"],
+input[type="date"],
 select {
   background: var(--input-bg);
   border: 1px solid var(--input-border);
@@ -121,6 +122,7 @@ select {
 }
 
 input[type="text"]:focus,
+input[type="date"]:focus,
 select:focus {
   outline: none;
   border-color: var(--accent);
@@ -338,6 +340,20 @@ button[type="submit"]:disabled {
   font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.page-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 /* Empty state */

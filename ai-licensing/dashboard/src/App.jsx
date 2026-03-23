@@ -294,22 +294,35 @@ function UsageView() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [providers, setProviders] = useState([]);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [page, setPage] = useState(1);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function fetchLogs(p = 1) {
     setError(null);
-    setResult(null);
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/sites/${siteId}/usage`, { headers: { "x-api-key": apiKey } });
+      const params = new URLSearchParams({ page: p, limit: 25 });
+      providers.forEach((p) => params.append("provider", p));
+      if (from) params.set("from", from);
+      if (to) params.set("to", to);
+      const res = await fetch(`${API_URL}/sites/${siteId}/usage?${params}`, { headers: { "x-api-key": apiKey } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch usage");
       setResult(data);
+      setPage(p);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setResult(null);
+    fetchLogs(1);
   }
 
   return (
@@ -327,34 +340,66 @@ function UsageView() {
             <input id="u-apiKey" type="text" placeholder="your-api-key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} required />
           </div>
         </div>
+        <div className="field-row">
+          <div className="field">
+            <label htmlFor="u-from">From</label>
+            <input id="u-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="u-to">To</label>
+            <input id="u-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+        </div>
+        <div className="field">
+          <label>Filter by AI</label>
+          <div className="ai-toggle-group">
+            <button type="button" className={`ai-toggle${providers.length === 0 ? " active" : ""}`} onClick={() => setProviders([])}>All</button>
+            {AI_OPTIONS.map((ai) => (
+              <button key={ai} type="button" className={`ai-toggle${providers.includes(ai) ? " active" : ""}`} onClick={() =>
+                setProviders((prev) => prev.includes(ai) ? prev.filter((p) => p !== ai) : [...prev, ai])
+              }>
+                {ai}
+              </button>
+            ))}
+          </div>
+        </div>
         <button type="submit" disabled={loading}>{loading ? "Loading..." : "Fetch logs"}</button>
       </form>
 
       {result && (
         <div className="usage-results">
           <p className="usage-header">
-            <strong>{result.name}</strong> — {result.usage.length} request{result.usage.length !== 1 ? "s" : ""}
+            <strong>{result.name}</strong> — {result.total} total request{result.total !== 1 ? "s" : ""}
           </p>
           {result.usage.length === 0 ? (
-            <EmptyState message="No AI access logged yet." />
+            <EmptyState message="No logs match your filters." />
           ) : (
-            <div className="table-wrap">
-              <table className="usage-table">
-                <thead>
-                  <tr><th>AI</th><th>Path</th><th>IP</th><th>Time</th></tr>
-                </thead>
-                <tbody>
-                  {result.usage.map((log) => (
-                    <tr key={log._id}>
-                      <td><ProviderBadge name={log.aiProvider} /></td>
-                      <td>{log.path}</td>
-                      <td>{log.ip}</td>
-                      <td>{new Date(log.timestamp).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="table-wrap">
+                <table className="usage-table">
+                  <thead>
+                    <tr><th>AI</th><th>Path</th><th>IP</th><th>Time</th></tr>
+                  </thead>
+                  <tbody>
+                    {result.usage.map((log) => (
+                      <tr key={log._id}>
+                        <td><ProviderBadge name={log.aiProvider} /></td>
+                        <td>{log.path}</td>
+                        <td>{log.ip}</td>
+                        <td>{new Date(log.timestamp).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {result.pages > 1 && (
+                <div className="pagination">
+                  <button className="btn-secondary" onClick={() => fetchLogs(page - 1)} disabled={page === 1}>← Prev</button>
+                  <span className="page-info">Page {page} of {result.pages}</span>
+                  <button className="btn-secondary" onClick={() => fetchLogs(page + 1)} disabled={page === result.pages}>Next →</button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
