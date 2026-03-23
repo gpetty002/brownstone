@@ -7,7 +7,11 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-const AI_OPTIONS = ["ChatGPT", "Claude", "BingAI", "Perplexity", "Gemini"];
+const AI_OPTIONS = [
+  "ChatGPT", "OpenAI Training Crawler", "Claude", "BingAI", "Perplexity",
+  "Gemini", "Grok", "Meta", "CommonCrawl", "Cohere", "Diffbot",
+  "Bytespider", "YouBot", "AppleBot", "DuckAssist", "Amazonbot",
+];
 
 const PROVIDER_COLORS = {
   ChatGPT:     { bg: "#d1fae5", text: "#065f46" },
@@ -43,11 +47,13 @@ function App() {
           <button className={view === "analytics" ? "tab active" : "tab"} onClick={() => setView("analytics")}>Analytics</button>
           <button className={view === "usage" ? "tab active" : "tab"} onClick={() => setView("usage")}>Logs</button>
           <button className={view === "unknown" ? "tab active" : "tab"} onClick={() => setView("unknown")}>Unknown bots</button>
+          <button className={view === "settings" ? "tab active" : "tab"} onClick={() => setView("settings")}>Settings</button>
         </nav>
         {view === "register" && <RegisterView />}
         {view === "analytics" && <AnalyticsView />}
         {view === "usage" && <UsageView />}
         {view === "unknown" && <UnknownBotsView />}
+        {view === "settings" && <SettingsView />}
       </div>
     </div>
   );
@@ -164,12 +170,11 @@ function RegisterView() {
         )}
         <div className="field">
           <label>Block specific AIs</label>
-          <div className="checkbox-group">
+          <div className="ai-toggle-group">
             {AI_OPTIONS.map((ai) => (
-              <label key={ai} className="checkbox-label">
-                <input type="checkbox" checked={form.blockedAIs.includes(ai)} onChange={() => toggleBlockedAI(ai)} />
+              <button key={ai} type="button" className={`ai-toggle${form.blockedAIs.includes(ai) ? " active" : ""}`} onClick={() => toggleBlockedAI(ai)}>
                 {ai}
-              </label>
+              </button>
             ))}
           </div>
         </div>
@@ -198,7 +203,8 @@ function AnalyticsView() {
     setData(null);
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/sites/${siteId}/analytics`, { headers: { "x-api-key": apiKey } });
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const res = await fetch(`${API_URL}/sites/${siteId}/analytics?tz=${encodeURIComponent(tz)}`, { headers: { "x-api-key": apiKey } });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to fetch analytics");
       setData(json);
@@ -425,6 +431,108 @@ function UnknownBotsView() {
             </div>
           )}
         </div>
+      )}
+    </>
+  );
+}
+
+function SettingsView() {
+  const [siteId, setSiteId] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [site, setSite] = useState(null);
+  const [blockedAIs, setBlockedAIs] = useState([]);
+  const [enforcementEnabled, setEnforcementEnabled] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function handleLoad(e) {
+    e.preventDefault();
+    setError(null);
+    setSite(null);
+    setSaved(false);
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/sites/${siteId}`, { headers: { "x-api-key": apiKey } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load site");
+      setSite(data);
+      setBlockedAIs(data.blockedAIs || []);
+      setEnforcementEnabled(data.enforcementEnabled || false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setError(null);
+    setSaved(false);
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/sites/${siteId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+        body: JSON.stringify({ blockedAIs, enforcementEnabled }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save settings");
+      setSaved(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function toggleAI(ai) {
+    setBlockedAIs((prev) =>
+      prev.includes(ai) ? prev.filter((a) => a !== ai) : [...prev, ai]
+    );
+  }
+
+  return (
+    <>
+      <p className="subtitle">Update settings for a registered site.</p>
+      {error && <p className="error">{error}</p>}
+      {!site ? (
+        <form onSubmit={handleLoad}>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="s-siteId">Site ID</label>
+              <input id="s-siteId" type="text" placeholder="64f3a..." value={siteId} onChange={(e) => setSiteId(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label htmlFor="s-apiKey">API Key</label>
+              <input id="s-apiKey" type="text" placeholder="your-api-key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} required />
+            </div>
+          </div>
+          <button type="submit" disabled={loading}>{loading ? "Loading..." : "Load settings"}</button>
+        </form>
+      ) : (
+        <form onSubmit={handleSave}>
+          <p className="usage-header"><strong>{site.name}</strong></p>
+          <div className="field">
+            <label>Blocked AIs</label>
+            <div className="ai-toggle-group">
+              {AI_OPTIONS.map((ai) => (
+                <button key={ai} type="button" className={`ai-toggle${blockedAIs.includes(ai) ? " active" : ""}`} onClick={() => toggleAI(ai)}>
+                  {ai}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="field checkbox-field">
+            <label className="checkbox-label">
+              <input type="checkbox" checked={enforcementEnabled} onChange={(e) => setEnforcementEnabled(e.target.checked)} />
+              Enable enforcement
+            </label>
+          </div>
+          {saved && <p className="hint">Settings saved.</p>}
+          <button type="submit" disabled={loading}>{loading ? "Saving..." : "Save settings"}</button>
+        </form>
       )}
     </>
   );

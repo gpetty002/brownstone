@@ -44,4 +44,46 @@ router.post("/", async (req, res) => {
   });
 });
 
+// GET /sites/:id — fetch site settings
+router.get("/:id", async (req, res) => {
+  const apiKey = req.headers["x-api-key"];
+
+  const site = await Site.findById(req.params.id);
+  if (!site) return res.status(404).json({ error: "Site not found" });
+  if (site.apiKey !== apiKey) return res.status(401).json({ error: "Invalid API key" });
+
+  res.json({
+    id: site._id,
+    name: site.name,
+    license: site.license,
+    enforcementEnabled: site.enforcementEnabled,
+    blockedAIs: site.blockedAIs,
+    domain: site.domain,
+  });
+});
+
+// PATCH /sites/:id — update site settings
+router.patch("/:id", async (req, res) => {
+  const apiKey = req.headers["x-api-key"];
+  const { blockedAIs, license, enforcementEnabled } = req.body;
+
+  const site = await Site.findById(req.params.id);
+  if (!site) return res.status(404).json({ error: "Site not found" });
+  if (site.apiKey !== apiKey) return res.status(401).json({ error: "Invalid API key" });
+
+  if (blockedAIs !== undefined) site.blockedAIs = blockedAIs;
+  if (license !== undefined) site.license = { ...site.license, ...license };
+  if (enforcementEnabled !== undefined) site.enforcementEnabled = enforcementEnabled;
+
+  await site.save();
+
+  res.json({
+    id: site._id,
+    name: site.name,
+    license: site.license,
+    enforcementEnabled: site.enforcementEnabled,
+    blockedAIs: site.blockedAIs,
+  });
+});
+
 module.exports = router;

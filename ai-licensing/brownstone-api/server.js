@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const logRoute = require("./routes/log");
+const migrateRoute = require("./routes/migrate");
 const checkRoute = require("./routes/check");
 const sitesRoute = require("./routes/sites");
 const usageRoute = require("./routes/usage");
@@ -41,6 +42,7 @@ app.use("/unknown-hit", unknownHitsRoute);
 app.use("/sites", unknownHitsRoute);
 app.use("/sites", llmsTxtRoute);
 app.use("/lookup", lookupRoute);
+app.use("/migrate", migrateRoute);
 
 app.listen(4000, () => {
   console.log("Brownstone API running on port 4000");
