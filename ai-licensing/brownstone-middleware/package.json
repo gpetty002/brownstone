@@ -1,6 +1,6 @@
 {
   "name": "brownstone-middleware",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Express middleware for detecting, logging, and enforcing licensing around AI agent access",
   "main": "index.js",
   "files": [

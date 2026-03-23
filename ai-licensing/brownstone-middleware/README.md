@@ -28,7 +28,7 @@ app.use(
       rate: "$0.001-per-1000-tokens",
       permission: "allowed",
     },
-  })
+  }),
 );
 
 app.get("/", (req, res) => {
@@ -39,27 +39,30 @@ app.get("/", (req, res) => {
 ## How it works
 
 1. Each incoming request is checked for a known AI user-agent
-2. If an AI is detected and `metering` is enabled, the hit is logged to your Brownstone dashboard
+2. If an AI is detected and `metering` is enabled, the hit is logged to your Brownstone dashboard. Unknown bots (user-agents matching generic patterns like `bot`, `crawler`, `spider`, or `scraper`) are also logged.
 3. If `enforcement` is enabled, the request is checked against your site's license — blocked AIs receive a `403` response
 4. A `<meta name="ai-usage">` tag is injected into every HTML response so AI crawlers can read your licensing terms directly from the page
 
 ## Options
 
-| Option | Type | Required | Description |
-|---|---|---|---|
-| `apiKey` | string | Yes (if metering or enforcement enabled) | Your Brownstone site API key |
-| `metering` | boolean | No | Log AI hits to the Brownstone API |
-| `enforcement` | boolean | No | Block AIs based on your site's configuration |
-| `license` | object | No | License info injected into HTML meta tag |
-| `license.model` | string | No | `"free"` or `"paid"` |
-| `license.rate` | string | No | e.g. `"$0.001-per-1000-tokens"` |
-| `license.permission` | string | No | `"allowed"`, `"restricted"`, or `"blocked"` |
+| Option               | Type    | Required                                 | Description                                                                 |
+| -------------------- | ------- | ---------------------------------------- | --------------------------------------------------------------------------- |
+| `apiKey`             | string  | Yes (if metering or enforcement enabled) | Your Brownstone site API key                                                |
+| `apiUrl`             | string  | No                                       | Base URL of the Brownstone API (default: `https://api.brownstoneai.dev`)    |
+| `metering`           | boolean | No                                       | Log AI and unknown bot hits to the Brownstone API                           |
+| `enforcement`        | boolean | No                                       | Block AIs based on your site's configuration                                |
+| `llmsTxt`            | string  | No                                       | Custom content to serve at `/llms.txt`                                      |
+| `license`            | object  | No                                       | License info injected into HTML meta tag                                    |
+| `license.model`      | string  | No                                       | `"free"` or `"paid"`                                                        |
+| `license.rate`       | string  | No                                       | e.g. `"$0.001-per-1000-tokens"`                                             |
+| `license.permission` | string  | No                                       | `"allowed"`, `"restricted"`, or `"blocked"`                                 |
 
 ## Detected AI agents
 
 Brownstone detects the following bots out of the box:
 
 - ChatGPT (OpenAI)
+- OpenAI Training Crawler (GPTBot)
 - Claude (Anthropic)
 - BingAI (Microsoft)
 - Perplexity
@@ -70,10 +73,14 @@ Brownstone detects the following bots out of the box:
 - Cohere
 - Diffbot
 - Bytespider (ByteDance)
+- YouBot
+- AppleBot
+- DuckAssist (DuckDuckGo)
+- Amazonbot
 
 ## Get an API key
 
-Register your site and get an API key at [brownstone.dev](https://brownstone.dev) (coming soon) or by running the Brownstone API locally.
+Register your site and get an API key at [brownstoneai.dev](https://brownstoneai.dev) or by running the Brownstone API locally.
 
 ## License
 
